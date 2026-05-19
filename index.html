@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silver Price Forecaster</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-grad-1: #0f172a;
+            --bg-grad-2: #1e1b4b;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #8b5cf6;
+            --secondary: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin-top: 50px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(to right, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 4px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        .top-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+        }
+
+        input[type="date"] {
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.6);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="date"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .result-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .price-label {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .price-value {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #34d399, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 10px;
+            text-shadow: 0px 0px 20px rgba(52, 211, 153, 0.3);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .top-section {
+                grid-template-columns: 1fr;
+            }
+            .result-box {
+                border-left: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 30px;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Silver Price Forecaster</h1>
+            <p class="subtitle">AI-powered smooth long-term market projection</p>
+        </header>
+
+        <div class="glass-card top-section">
+            <div class="input-group">
+                <label for="date-input">Select Target Date</label>
+                <input type="date" id="date-input">
+                <button onclick="predict()">Generate Projection</button>
+            </div>
+            <div class="result-box">
+                <span class="price-label">Projected Price</span>
+                <span class="price-value" id="price-display">--</span>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Setup initial date
+        const dateInput = document.getElementById('date-input');
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.value = tomorrow.toISOString().split('T')[0];
+
+        let priceChart = null;
+
+        function initChart(labels, histData, futData) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            if (priceChart) {
+                priceChart.destroy();
+            }
+
+            const gradHist = ctx.createLinearGradient(0, 0, 0, 400);
+            gradHist.addColorStop(0, 'rgba(148, 163, 184, 0.5)');
+            gradHist.addColorStop(1, 'rgba(148, 163, 184, 0.0)');
+
+            const gradFut = ctx.createLinearGradient(0, 0, 0, 400);
+            gradFut.addColorStop(0, 'rgba(52, 211, 153, 0.5)');
+            gradFut.addColorStop(1, 'rgba(52, 211, 153, 0.0)');
+
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Historical',
+                            data: histData,
+                            borderColor: '#94a3b8',
+                            backgroundColor: gradHist,
+                            borderWidth: 2,
+                            fill: true,
+                            pointRadius: 0,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Projection',
+                            data: futData,
+                            borderColor: '#34d399',
+                            backgroundColor: gradFut,
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            fill: true,
+                            pointRadius: (ctx) => ctx.dataIndex === futData.length - 1 ? 6 : 0,
+                            pointBackgroundColor: '#10b981',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f8fafc',
+                                font: {
+                                    family: "'Outfit', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { family: "'Outfit', sans-serif", size: 14 },
+                            bodyFont: { family: "'Outfit', sans-serif", size: 14 },
+                            padding: 12,
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function predict() {
+            const date = dateInput.value;
+            if (!date) return;
+
+            const btn = document.querySelector('button');
+            btn.innerHTML = 'Analyzing...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: date })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                document.getElementById('price-display').innerText = '$' + data.predicted_price.toFixed(2);
+
+                const allLabels = [...data.historical_dates];
+                const histData = [...data.historical_prices];
+                
+                const futData = new Array(histData.length - 1).fill(null);
+                futData.push(histData[histData.length - 1]);
+                
+                data.future_dates.forEach((d, i) => {
+                    allLabels.push(d);
+                    histData.push(null);
+                    futData.push(data.future_prices[i]);
+                });
+
+                initChart(allLabels, histData, futData);
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to fetch prediction.");
+            } finally {
+                btn.innerHTML = 'Generate Projection';
+                btn.disabled = false;
+            }
+        }
+
+        predict();
+    </script>
+</body>
+</html>
